@@ -14,10 +14,41 @@ const hospitals = require('./routes/hospitals');
 const appointments = require('./routes/appointments');
 const auth = require('./routes/auth');
 const app=express();
+const mongoSanitize=require('express-mongo-sanitize');
+const helmet=require('helmet');
+const xss=require('xss-clean');
+const rateLimit=require('express-rate-limit');
+const hpp=require('hpp');
+const cors=require('cors');
+
 //Body Parser
 app.use(express.json());
+
 //Cookie Parser
 app.use(cookieParser());
+
+//Sanitize data
+app.use(mongoSanitize());
+
+//Set security headers
+app.use(helmet());
+
+//Prevent XSS attacks
+app.use(xss());
+
+//Prevent http param pollutions
+app.use(hpp());
+//Rate Limiting
+const limiter=rateLimit({
+    windowsMs:10*60*1000,//10 mins
+    max: 1
+});
+app.use(limiter);
+
+//Enable CORS
+app.use(cors());
+
+
 app.use('/api/v1/hospitals',hospitals);
 app.use('/api/v1/appointments',appointments);
 app.use('/api/v1/auth',auth)
